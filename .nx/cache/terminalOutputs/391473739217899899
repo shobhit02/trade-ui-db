@@ -1,0 +1,13 @@
+X [ERROR] "@vitejs/plugin-react-swc" resolved to an ESM file. ESM file cannot be loaded by `require`. See https://vite.dev/guide/troubleshooting.html#this-package-is-esm-only for more details. [plugin externalize-deps]
+
+    apps/trade-ui/vite.config.ts:2:18:
+      2 │ import react from '@vitejs/plugin-react-swc';
+        ╵                   ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[31mfailed to load config from F:\BRAIN DRAIN\GIT\trade-store-full-router\apps\trade-ui\vite.config.ts[39m
+
+[0m[7m[1m[31m NX [39m[22m[27m[0m  [31mBuild failed with 1 error:[39m
+
+apps/trade-ui/vite.config.ts:2:18: ERROR: [plugin: externalize-deps] "@vitejs/plugin-react-swc" resolved to an ESM file. ESM file cannot be loaded by `require`. See https://vite.dev/guide/troubleshooting.html#this-package-is-esm-only for more details.
+Pass --verbose to see the stacktrace.
+

@@ -1,0 +1,29 @@
+{
+	"name": "trade-ui",
+	"projectType": "application",
+	"sourceRoot": "apps/trade-ui/src",
+	"targets": {
+		"build": {
+		"executor": "@nx/vite:build",
+		"outputs": ["{options.outputPath}"],
+		"options": {
+			"outputPath": "dist/apps/trade-ui",
+			"configFile": "apps/trade-ui/vite.config.ts"
+		}
+		},
+		"serve": {
+		"executor": "@nx/vite:dev-server",
+		"options": {
+			"buildTarget": "trade-ui:build",
+			"configFile": "apps/trade-ui/vite.config.ts",
+			"port": 4201
+		}
+		},
+		"lint": {
+		"executor": "@nx/eslint:lint",
+		"options": {
+			"lintFilePatterns": ["apps/trade-ui/src/**/*.{ts,tsx}"]
+		}
+		}
+	}
+}

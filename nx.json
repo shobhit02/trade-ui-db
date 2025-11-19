@@ -1,0 +1,10 @@
+{
+  "extends": "nx/presets/npm.json",
+  "namedInputs": {
+    "default": [
+      "{projectRoot}/**/*",
+      "!{projectRoot}/dist/**",
+      "!{projectRoot}/coverage/**"
+    ]
+  }
+}
