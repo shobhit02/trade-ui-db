@@ -24,8 +24,7 @@ import { Trade, TradeFormValues, SaveResult } from './types';
 import { saveTrade } from './tradeLogic';
 import { TRADE_FORM_FIELDS, tradeFormSchema } from './formConfig';
 import { fetchTrades } from './tradeService';
-
-const todayStr = () => new Date().toISOString().split('T')[0];
+import { todayStr } from './utils/date';
 
 export const TradesPage: React.FC = () => {
   const [trades, setTrades] = React.useState<Trade[]>([]);
@@ -39,6 +38,7 @@ export const TradesPage: React.FC = () => {
   const [dialogMode, setDialogMode] = React.useState<'create' | 'edit'>('create');
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [pendingValues, setPendingValues] = React.useState<TradeFormValues | null>(null);
+  const [originalValues, setOriginalValues] = React.useState<TradeFormValues | null>(null);
 
   const {
     register,
@@ -77,33 +77,38 @@ export const TradesPage: React.FC = () => {
     };
   }, []);
 
+  const defaultFormValues: TradeFormValues = {
+    tradeId: '',
+    version: 1,
+    counterPartyId: '',
+    bookId: '',
+    maturityDate: todayStr(),
+  };
+
   const openCreateDialog = () => {
     setDialogMode('create');
     setMessage(null);
     setError(null);
-    reset({
-      tradeId: '',
-      version: 1,
-      counterPartyId: '',
-      bookId: '',
-      maturityDate: todayStr(),
-    });
+    setOriginalValues(null);
+    reset(defaultFormValues);
     setDialogOpen(true);
   };
 
-  const openEditDialog = (trade: Trade) => {
-    setDialogMode('edit');
-    setMessage(null);
-    setError(null);
-    reset({
+  const openEditDialog = React.useCallback((trade: Trade) => {
+    const editValues: TradeFormValues = {
       tradeId: trade.tradeId,
       version: trade.version,
       counterPartyId: trade.counterPartyId,
       bookId: trade.bookId,
       maturityDate: trade.maturityDate,
-    });
+    };
+    setDialogMode('edit');
+    setMessage(null);
+    setError(null);
+    setOriginalValues(editValues);
+    reset(editValues);
     setDialogOpen(true);
-  };
+  }, [reset]);
 
   const handleRowDoubleClick = (params: GridRowParams) => {
     const row = params.row as Trade;
@@ -153,57 +158,64 @@ export const TradesPage: React.FC = () => {
     setPendingValues(null);
   };
 
-  const columns: GridColDef[] = [
-    {
-      field: 'tradeId',
-      headerName: 'Trade ID',
-      flex: 1,
-      sortable: true,
-      renderCell: (params) => (
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Typography variant="body2">{params.value}</Typography>
-        </Stack>
-      ),
-    },
-    { field: 'version', headerName: 'Version', flex: 0.7, type: 'number', sortable: true },
-    { field: 'counterPartyId', headerName: 'Counter-Party', flex: 1 },
-    { field: 'bookId', headerName: 'Book ID', flex: 1 },
-    { field: 'maturityDate', headerName: 'Maturity Date', flex: 1 },
-    { field: 'createdDate', headerName: 'Created Date', flex: 1 },
-    {
-      field: 'expired',
-      headerName: 'Expired',
-      flex: 0.8,
-      sortable: true,
-      renderCell: (params) =>
-        params.value ? (
-          <Chip label="Expired" color="error" size="small" />
-        ) : (
-          <Chip label="Active" color="success" size="small" />
+  const columns: GridColDef[] = React.useMemo(
+    () => [
+      {
+        field: 'tradeId',
+        headerName: 'Trade ID',
+        flex: 1,
+        sortable: true,
+        renderCell: (params) => (
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography variant="body2">{params.value}</Typography>
+          </Stack>
         ),
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      flex: 0.5,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => (
-        <IconButton
-          aria-label="Edit trade"
-          size="small"
-          onClick={() => openEditDialog(params.row as Trade)}
-        >
-          <EditIcon fontSize="inherit" />
-        </IconButton>
-      ),
-    },
-  ];
+      },
+      { field: 'version', headerName: 'Version', flex: 0.7, type: 'number', sortable: true },
+      { field: 'counterPartyId', headerName: 'Counter-Party', flex: 1 },
+      { field: 'bookId', headerName: 'Book ID', flex: 1 },
+      { field: 'maturityDate', headerName: 'Maturity Date', flex: 1 },
+      { field: 'createdDate', headerName: 'Created Date', flex: 1 },
+      {
+        field: 'expired',
+        headerName: 'Expired',
+        flex: 0.8,
+        sortable: true,
+        renderCell: (params) =>
+          params.value ? (
+            <Chip label="Expired" color="error" size="small" />
+          ) : (
+            <Chip label="Active" color="success" size="small" />
+          ),
+      },
+      {
+        field: 'actions',
+        headerName: 'Actions',
+        flex: 0.5,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => (
+          <IconButton
+            aria-label="Edit trade"
+            size="small"
+            onClick={() => openEditDialog(params.row as Trade)}
+          >
+            <EditIcon fontSize="inherit" />
+          </IconButton>
+        ),
+      },
+    ],
+    [openEditDialog],
+  );
 
-  const rows = trades.map((t, idx) => ({
-    id: `${t.tradeId}-${t.version}-${idx}`,
-    ...t,
-  }));
+  const rows = React.useMemo(
+    () =>
+      trades.map((t, idx) => ({
+        id: `${t.tradeId}-${t.version}-${idx}`,
+        ...t,
+      })),
+    [trades],
+  );
 
   return (
     <Box sx={{ p: 1 }}>
@@ -305,15 +317,13 @@ export const TradesPage: React.FC = () => {
               </Button>
               <Button
                 variant="outlined"
-                onClick={() =>
-                  reset({
-                    tradeId: '',
-                    version: 1,
-                    counterPartyId: '',
-                    bookId: '',
-                    maturityDate: todayStr(),
-                  })
-                }
+                onClick={() => {
+                  if (dialogMode === 'edit' && originalValues) {
+                    reset(originalValues);
+                  } else {
+                    reset(defaultFormValues);
+                  }
+                }}
               >
                 Reset
               </Button>

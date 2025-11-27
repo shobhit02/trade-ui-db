@@ -1,8 +1,7 @@
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { Trade } from '../app/types';
-
-const todayStr = () => new Date().toISOString().split('T')[0];
+import { todayStr } from '../app/utils/date';
 
 const trades: Trade[] = [
   {

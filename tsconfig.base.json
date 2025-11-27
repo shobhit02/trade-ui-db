@@ -11,6 +11,7 @@
 			"moduleResolution": "Node",
 			"strict": true,
 			"jsx": "react-jsx",
+			"jsxImportSource": "react",
 			"esModuleInterop": true,
 			"allowJs": false,
 			"skipLibCheck": true,

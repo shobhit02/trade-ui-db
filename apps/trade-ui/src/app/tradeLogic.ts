@@ -1,10 +1,5 @@
 import { Trade, TradeFormValues, SaveResult } from './types';
-
-const todayStr = () => new Date().toISOString().split('T')[0];
-
-const computeExpired = (maturityDate: string): boolean => {
-  return maturityDate < todayStr();
-};
+import { todayStr, isExpired } from './utils/date';
 
 export function saveTrade(existing: Trade[], input: TradeFormValues): SaveResult {
   const { tradeId, version, counterPartyId, bookId, maturityDate } = input;
@@ -13,7 +8,7 @@ export function saveTrade(existing: Trade[], input: TradeFormValues): SaveResult
     return { ok: false, trades: existing, error: 'Please fill all fields.' };
   }
 
-  if (maturityDate < todayStr()) {
+  if (isExpired(maturityDate)) {
     return { ok: false, trades: existing, error: 'Maturity date must be today or later.' };
   }
 
@@ -35,7 +30,7 @@ export function saveTrade(existing: Trade[], input: TradeFormValues): SaveResult
     bookId,
     maturityDate,
     createdDate: todayStr(),
-    expired: computeExpired(maturityDate),
+    expired: isExpired(maturityDate),
   };
 
   const existingIndex = existing.findIndex(

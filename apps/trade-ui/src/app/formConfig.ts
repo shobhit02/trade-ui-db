@@ -1,5 +1,6 @@
 import * as yup from 'yup';
 import { TradeFormValues } from './types';
+import { todayStr } from './utils/date';
 
 export interface TradeFormFieldConfig {
   name: keyof TradeFormValues;
@@ -37,8 +38,6 @@ export const TRADE_FORM_FIELDS: TradeFormFieldConfig[] = [
   },
 ];
 
-const todayStr = () => new Date().toISOString().split('T')[0];
-
 export const tradeFormSchema = yup.object({
   tradeId: yup.string().required('Trade Id is required'),
 
@@ -50,7 +49,7 @@ export const tradeFormSchema = yup.object({
 
   counterPartyId: yup
     .string()
-    .when('bookId', (bookId, schema) =>
+    .when('bookId', ([bookId], schema) =>
       bookId === 'B2'
         ? schema
             .required('Counter-Party Id is required for Book B2')

@@ -1,6 +1,5 @@
 import { Trade } from './types';
-
-const todayStr = () => new Date().toISOString().split('T')[0];
+import { todayStr } from './utils/date';
 
 const SEED_TRADES: Trade[] = [
   {
@@ -45,10 +44,11 @@ export async function fetchTrades(): Promise<Trade[]> {
   try {
     const res = await fetch('/api/trades');
     if (!res.ok) {
-      throw new Error('Failed to fetch trades');
+      throw new Error(`Failed to fetch trades: ${res.status} ${res.statusText}`);
     }
     return (await res.json()) as Trade[];
-  } catch {
+  } catch (error) {
+    console.warn('Failed to fetch trades from API, using seed data:', error);
     return SEED_TRADES;
   }
 }
