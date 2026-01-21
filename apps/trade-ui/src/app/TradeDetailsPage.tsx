@@ -1,8 +1,7 @@
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Typography, Box } from '@mui/material';
 
-export const TradeDetailsPage: React.FC = () => {
+export const TradeDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
 
   return (

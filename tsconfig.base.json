@@ -4,26 +4,18 @@
 		"module": "ESNext",
 		"baseUrl": ".",
 		"paths": {
-			"@trade-ui/*": [
-				"/apps/trade-ui/src/*"
-			]
+			"@trade-ui/*": ["/apps/trade-ui/src/*"]
 		},
-			"moduleResolution": "Node",
-			"strict": true,
-			"jsx": "react-jsx",
-			"jsxImportSource": "react",
-			"esModuleInterop": true,
-			"allowJs": false,
-			"skipLibCheck": true,
-			"forceConsistentCasingInFileNames": true,
-			"resolveJsonModule": true,
-			"types": [
-				"node",
-				"jest"
-			]
-		},
-		"exclude": [
-			"node_modules",
-			"dist"
-		]
-	}
+		"moduleResolution": "Node",
+		"strict": true,
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
+		"esModuleInterop": true,
+		"allowJs": false,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"types": ["node", "jest"]
+	},
+	"exclude": ["node_modules", "dist"]
+}

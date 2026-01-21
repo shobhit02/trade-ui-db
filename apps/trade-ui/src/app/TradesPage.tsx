@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -26,19 +26,27 @@ import { TRADE_FORM_FIELDS, tradeFormSchema } from './formConfig';
 import { fetchTrades } from './tradeService';
 import { todayStr } from './utils/date';
 
-export const TradesPage: React.FC = () => {
-  const [trades, setTrades] = React.useState<Trade[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(true);
-  const [loadError, setLoadError] = React.useState<string | null>(null);
+const DEFAULT_FORM_VALUES: TradeFormValues = {
+  tradeId: '',
+  version: 1,
+  counterPartyId: '',
+  bookId: '',
+  maturityDate: todayStr(),
+};
 
-  const [message, setMessage] = React.useState<string | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
+export const TradesPage = () => {
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [dialogMode, setDialogMode] = React.useState<'create' | 'edit'>('create');
-  const [confirmOpen, setConfirmOpen] = React.useState(false);
-  const [pendingValues, setPendingValues] = React.useState<TradeFormValues | null>(null);
-  const [originalValues, setOriginalValues] = React.useState<TradeFormValues | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingValues, setPendingValues] = useState<TradeFormValues | null>(null);
+  const [originalValues, setOriginalValues] = useState<TradeFormValues | null>(null);
 
   const {
     register,
@@ -47,16 +55,10 @@ export const TradesPage: React.FC = () => {
     formState: { errors },
   } = useForm<TradeFormValues>({
     resolver: yupResolver(tradeFormSchema),
-    defaultValues: {
-      tradeId: '',
-      version: 1,
-      counterPartyId: '',
-      bookId: '',
-      maturityDate: todayStr(),
-    },
+    defaultValues: DEFAULT_FORM_VALUES,
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
@@ -77,88 +79,96 @@ export const TradesPage: React.FC = () => {
     };
   }, []);
 
-  const defaultFormValues: TradeFormValues = {
-    tradeId: '',
-    version: 1,
-    counterPartyId: '',
-    bookId: '',
-    maturityDate: todayStr(),
-  };
-
-  const openCreateDialog = () => {
+  const openCreateDialog = useCallback(() => {
     setDialogMode('create');
     setMessage(null);
     setError(null);
     setOriginalValues(null);
-    reset(defaultFormValues);
-    setDialogOpen(true);
-  };
-
-  const openEditDialog = React.useCallback((trade: Trade) => {
-    const editValues: TradeFormValues = {
-      tradeId: trade.tradeId,
-      version: trade.version,
-      counterPartyId: trade.counterPartyId,
-      bookId: trade.bookId,
-      maturityDate: trade.maturityDate,
-    };
-    setDialogMode('edit');
-    setMessage(null);
-    setError(null);
-    setOriginalValues(editValues);
-    reset(editValues);
+    reset(DEFAULT_FORM_VALUES);
     setDialogOpen(true);
   }, [reset]);
 
-  const handleRowDoubleClick = (params: GridRowParams) => {
-    const row = params.row as Trade;
-    openEditDialog(row);
-  };
+  const openEditDialog = useCallback(
+    (trade: Trade) => {
+      const editValues: TradeFormValues = {
+        tradeId: trade.tradeId,
+        version: trade.version,
+        counterPartyId: trade.counterPartyId,
+        bookId: trade.bookId,
+        maturityDate: trade.maturityDate,
+      };
+      setDialogMode('edit');
+      setMessage(null);
+      setError(null);
+      setOriginalValues(editValues);
+      reset(editValues);
+      setDialogOpen(true);
+    },
+    [reset]
+  );
 
-  const applySave = (values: TradeFormValues) => {
-    const result: SaveResult = saveTrade(trades, values);
+  const handleRowDoubleClick = useCallback(
+    (params: GridRowParams) => {
+      const row = params.row as Trade;
+      openEditDialog(row);
+    },
+    [openEditDialog]
+  );
 
-    if (!result.ok) {
-      setError(result.error);
-      return;
-    }
+  const applySave = useCallback(
+    (values: TradeFormValues) => {
+      const result: SaveResult = saveTrade(trades, values);
 
-    setTrades(result.trades);
-    setMessage(result.message);
-    setDialogOpen(false);
-    setPendingValues(null);
-  };
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
 
-  const onSubmit = (values: TradeFormValues) => {
-    setMessage(null);
-    setError(null);
+      setTrades(result.trades);
+      setMessage(result.message);
+      setDialogOpen(false);
+      setPendingValues(null);
+    },
+    [trades]
+  );
 
-    const sameVersion = trades.find(
-      (t) => t.tradeId === values.tradeId && t.version === values.version,
-    );
+  const onSubmit = useCallback(
+    (values: TradeFormValues) => {
+      setMessage(null);
+      setError(null);
 
-    if (sameVersion) {
-      setPendingValues(values);
-      setConfirmOpen(true);
-      return;
-    }
+      const sameVersion = trades.find(
+        (t) => t.tradeId === values.tradeId && t.version === values.version
+      );
 
-    applySave(values);
-  };
+      if (sameVersion) {
+        setPendingValues(values);
+        setConfirmOpen(true);
+        return;
+      }
 
-  const handleConfirmReplace = () => {
+      applySave(values);
+    },
+    [trades, applySave]
+  );
+
+  const handleConfirmReplace = useCallback(() => {
     if (pendingValues) {
       applySave(pendingValues);
     }
     setConfirmOpen(false);
-  };
+  }, [pendingValues, applySave]);
 
-  const handleCancelReplace = () => {
+  const handleCancelReplace = useCallback(() => {
     setConfirmOpen(false);
     setPendingValues(null);
-  };
+  }, []);
 
-  const columns: GridColDef[] = React.useMemo(
+  const handleDialogClose = useCallback(() => {
+    setDialogOpen(false);
+  }, []);
+
+  const columns: GridColDef[] = useMemo(
     () => [
       {
         field: 'tradeId',
@@ -166,9 +176,9 @@ export const TradesPage: React.FC = () => {
         flex: 1,
         sortable: true,
         renderCell: (params) => (
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Typography variant="body2">{params.value}</Typography>
-          </Stack>
+          <Typography variant="body2" component="span">
+            {params.value}
+          </Typography>
         ),
       },
       { field: 'version', headerName: 'Version', flex: 0.7, type: 'number', sortable: true },
@@ -205,16 +215,16 @@ export const TradesPage: React.FC = () => {
         ),
       },
     ],
-    [openEditDialog],
+    [openEditDialog]
   );
 
-  const rows = React.useMemo(
+  const rows = useMemo(
     () =>
       trades.map((t, idx) => ({
         id: `${t.tradeId}-${t.version}-${idx}`,
         ...t,
       })),
-    [trades],
+    [trades]
   );
 
   return (
@@ -278,7 +288,7 @@ export const TradesPage: React.FC = () => {
         </Paper>
       </Stack>
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
+      <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="sm">
         <DialogTitle>{dialogMode === 'create' ? 'Create Trade' : 'Edit Trade'}</DialogTitle>
         <DialogContent dividers>
           <Box
@@ -321,7 +331,7 @@ export const TradesPage: React.FC = () => {
                   if (dialogMode === 'edit' && originalValues) {
                     reset(originalValues);
                   } else {
-                    reset(defaultFormValues);
+                    reset(DEFAULT_FORM_VALUES);
                   }
                 }}
               >

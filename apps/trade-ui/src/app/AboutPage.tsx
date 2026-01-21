@@ -1,7 +1,6 @@
-import React from 'react';
 import { Typography, Box } from '@mui/material';
 
-export const AboutPage: React.FC = () => (
+export const AboutPage = () => (
   <Box>
     <Typography variant="h5" gutterBottom>
       About Trade Store

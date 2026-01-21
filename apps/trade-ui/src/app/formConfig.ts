@@ -49,13 +49,14 @@ export const tradeFormSchema = yup.object({
 
   counterPartyId: yup
     .string()
-    .when('bookId', ([bookId], schema) =>
-      bookId === 'B2'
-        ? schema
-            .required('Counter-Party Id is required for Book B2')
-            .matches(/^VIP-/, 'For Book B2, Counter-Party Id must start with "VIP-"')
-        : schema.required('Counter-Party Id is required')
-    ),
+    .when('bookId', {
+      is: 'B2',
+      then: (schema) =>
+        schema
+          .required('Counter-Party Id is required for Book B2')
+          .matches(/^VIP-/, 'For Book B2, Counter-Party Id must start with "VIP-"'),
+      otherwise: (schema) => schema.required('Counter-Party Id is required'),
+    }),
 
   bookId: yup.string().required('Book Id is required'),
 

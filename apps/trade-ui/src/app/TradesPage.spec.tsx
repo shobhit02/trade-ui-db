@@ -1,11 +1,11 @@
-import React from 'react';
+import { type ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { TradesPage } from './TradesPage';
 import { ThemeProvider, CssBaseline, createTheme } from '@mui/material';
 
-const renderWithTheme = (ui: React.ReactElement) => {
+const renderWithTheme = (ui: ReactElement) => {
   const theme = createTheme();
   return render(
     <ThemeProvider theme={theme}>

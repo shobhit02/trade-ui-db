@@ -12,8 +12,9 @@ export function saveTrade(existing: Trade[], input: TradeFormValues): SaveResult
     return { ok: false, trades: existing, error: 'Maturity date must be today or later.' };
   }
 
+  const versionNum = Number(version);
   const sameIdTrades = existing.filter((t) => t.tradeId === tradeId);
-  const higherVersion = sameIdTrades.find((t) => t.version > Number(version));
+  const higherVersion = sameIdTrades.find((t) => t.version > versionNum);
 
   if (higherVersion) {
     return {
@@ -25,7 +26,7 @@ export function saveTrade(existing: Trade[], input: TradeFormValues): SaveResult
 
   const newTrade: Trade = {
     tradeId,
-    version: Number(version),
+    version: versionNum,
     counterPartyId,
     bookId,
     maturityDate,
@@ -34,20 +35,22 @@ export function saveTrade(existing: Trade[], input: TradeFormValues): SaveResult
   };
 
   const existingIndex = existing.findIndex(
-    (t) => t.tradeId === tradeId && t.version === Number(version),
+    (t) => t.tradeId === tradeId && t.version === versionNum
   );
 
-  let updated: Trade[];
-  let message: string;
-
   if (existingIndex >= 0) {
-    updated = [...existing];
+    const updated = [...existing];
     updated[existingIndex] = newTrade;
-    message = `Trade ${tradeId} v${version} replaced successfully.`;
-  } else {
-    updated = [...existing, newTrade];
-    message = `Trade ${tradeId} v${version} created successfully.`;
+    return {
+      ok: true,
+      trades: updated,
+      message: `Trade ${tradeId} v${version} replaced successfully.`,
+    };
   }
 
-  return { ok: true, trades: updated, message };
+  return {
+    ok: true,
+    trades: [...existing, newTrade],
+    message: `Trade ${tradeId} v${version} created successfully.`,
+  };
 }

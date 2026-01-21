@@ -1,11 +1,21 @@
-import React from 'react';
+import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, Link } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Button, Box, Stack } from '@mui/material';
-import { TradesPage } from './TradesPage';
-import { TradeDetailsPage } from './TradeDetailsPage';
-import { AboutPage } from './AboutPage';
+import { AppBar, Toolbar, Typography, Button, Box, Stack, CircularProgress } from '@mui/material';
 
-export const App: React.FC = () => {
+// Lazy load routes for code splitting
+const TradesPage = lazy(() => import('./TradesPage').then((m) => ({ default: m.TradesPage })));
+const TradeDetailsPage = lazy(() =>
+  import('./TradeDetailsPage').then((m) => ({ default: m.TradeDetailsPage }))
+);
+const AboutPage = lazy(() => import('./AboutPage').then((m) => ({ default: m.AboutPage })));
+
+const LoadingFallback = () => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+    <CircularProgress />
+  </Box>
+);
+
+export const App = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
       <AppBar position="static">
@@ -25,12 +35,14 @@ export const App: React.FC = () => {
       </AppBar>
 
       <Box sx={{ p: 2 }}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/trades" replace />} />
-          <Route path="/trades" element={<TradesPage />} />
-          <Route path="/trades/:id" element={<TradeDetailsPage />} />
-          <Route path="/about" element={<AboutPage />} />
-        </Routes>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/trades" replace />} />
+            <Route path="/trades" element={<TradesPage />} />
+            <Route path="/trades/:id" element={<TradeDetailsPage />} />
+            <Route path="/about" element={<AboutPage />} />
+          </Routes>
+        </Suspense>
       </Box>
     </Box>
   );
