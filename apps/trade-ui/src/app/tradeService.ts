@@ -46,9 +46,17 @@ export async function fetchTrades(): Promise<Trade[]> {
     if (!res.ok) {
       throw new Error(`Failed to fetch trades: ${res.status} ${res.statusText}`);
     }
-    return (await res.json()) as Trade[];
+    const data = await res.json();
+    // Validate response structure
+    if (!Array.isArray(data)) {
+      throw new Error('Invalid response format: expected array');
+    }
+    return data as Trade[];
   } catch (error) {
-    console.warn('Failed to fetch trades from API, using seed data:', error);
+    // In production, consider logging to an error tracking service
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Failed to fetch trades from API, using seed data:', error);
+    }
     return SEED_TRADES;
   }
 }

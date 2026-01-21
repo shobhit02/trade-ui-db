@@ -108,9 +108,8 @@ export const TradesPage = () => {
   );
 
   const handleRowDoubleClick = useCallback(
-    (params: GridRowParams) => {
-      const row = params.row as Trade;
-      openEditDialog(row);
+    (params: GridRowParams<Trade>) => {
+      openEditDialog(params.row);
     },
     [openEditDialog]
   );
@@ -206,9 +205,10 @@ export const TradesPage = () => {
         filterable: false,
         renderCell: (params) => (
           <IconButton
-            aria-label="Edit trade"
+            aria-label={`Edit trade ${params.row.tradeId} version ${params.row.version}`}
             size="small"
             onClick={() => openEditDialog(params.row as Trade)}
+            tabIndex={0}
           >
             <EditIcon fontSize="inherit" />
           </IconButton>
@@ -288,8 +288,16 @@ export const TradesPage = () => {
         </Paper>
       </Stack>
 
-      <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="sm">
-        <DialogTitle>{dialogMode === 'create' ? 'Create Trade' : 'Edit Trade'}</DialogTitle>
+      <Dialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        fullWidth
+        maxWidth="sm"
+        aria-labelledby="trade-dialog-title"
+      >
+        <DialogTitle id="trade-dialog-title">
+          {dialogMode === 'create' ? 'Create Trade' : 'Edit Trade'}
+        </DialogTitle>
         <DialogContent dividers>
           <Box
             component="form"
@@ -303,8 +311,7 @@ export const TradesPage = () => {
             noValidate
           >
             {TRADE_FORM_FIELDS.map((field) => {
-              const fieldError =
-                errors[field.name] && (errors[field.name]?.message as string | undefined);
+              const fieldError = errors[field.name]?.message as string | undefined;
 
               return (
                 <TextField
@@ -317,6 +324,8 @@ export const TradesPage = () => {
                   slotProps={{
                     inputLabel: field.shrinkLabel ? { shrink: true } : undefined,
                   }}
+                  aria-invalid={!!fieldError}
+                  aria-describedby={fieldError ? `${field.name}-error` : undefined}
                 />
               );
             })}
@@ -342,8 +351,12 @@ export const TradesPage = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={confirmOpen} onClose={handleCancelReplace}>
-        <DialogTitle>Replace Existing Trade?</DialogTitle>
+      <Dialog
+        open={confirmOpen}
+        onClose={handleCancelReplace}
+        aria-labelledby="confirm-dialog-title"
+      >
+        <DialogTitle id="confirm-dialog-title">Replace Existing Trade?</DialogTitle>
         <DialogContent dividers>
           <Typography variant="body2">
             A trade with the same Trade Id and Version already exists. Do you want to replace it?

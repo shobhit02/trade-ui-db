@@ -4,8 +4,9 @@ import { todayStr, isExpired } from './utils/date';
 export function saveTrade(existing: Trade[], input: TradeFormValues): SaveResult {
   const { tradeId, version, counterPartyId, bookId, maturityDate } = input;
 
-  if (!tradeId || !counterPartyId || !bookId || !maturityDate) {
-    return { ok: false, trades: existing, error: 'Please fill all fields.' };
+  // Validate required fields (this should be handled by form validation, but adding as safety check)
+  if (!tradeId?.trim() || !counterPartyId?.trim() || !bookId?.trim() || !maturityDate?.trim()) {
+    return { ok: false, trades: existing, error: 'Please fill all required fields.' };
   }
 
   if (isExpired(maturityDate)) {
